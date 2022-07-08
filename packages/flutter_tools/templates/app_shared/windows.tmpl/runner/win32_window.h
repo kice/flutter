@@ -13,9 +13,9 @@
 class Win32Window {
  public:
   struct Point {
-    unsigned int x;
-    unsigned int y;
-    Point(unsigned int x, unsigned int y) : x(x), y(y) {}
+    double x;
+    double y;
+    Point(double x, double y) : x(x), y(y) {}
   };
 
   struct Size {
@@ -28,15 +28,19 @@ class Win32Window {
   Win32Window();
   virtual ~Win32Window();
 
-  // Creates and shows a win32 window with |title| and position and size using
-  // |origin| and |size|. New windows are created on the default monitor. Window
-  // sizes are specified to the OS in physical pixels, hence to ensure a
-  // consistent size to will treat the width height passed in to this function
-  // as logical pixels and scale to appropriate for the default monitor. Returns
-  // true if the window was created successfully.
+  // Creates and shows a win32 window with |title| and size and position using
+  // |size|, |anchor| and |pivot|. |size| is window size bases on 96 DPI screen 
+  // (or logical pixels). |anchor| and |pivot| are values range from 0.0 to 1.0, 
+  // for screen anchor location and window pivot point. New windows are created 
+  // on the default monitor. Window sizes are specified to the OS in physical 
+  // pixels, hence to ensure a consistent size to will treat the width height passed 
+  // in to this function as "logical pixels" and "scale" to appropriate for the 
+  // default monitor.
+  // Returns true if the window was created successfully.
   bool CreateAndShow(const std::wstring& title,
-                     const Point& origin,
-                     const Size& size);
+                     const Size& size,
+                     const Point& anchor,
+                     const Point& pivot);
 
   // Release OS resources associated with window.
   void Destroy();

@@ -15,7 +15,8 @@ using EnableNonClientDpiScaling = BOOL __stdcall(HWND hwnd);
 
 // Scale helper to convert logical scaler values to physical using passed in
 // scale factor
-int Scale(int source, double scale_factor) {
+template<class ValueType>
+int Scale(ValueType source, double scale_factor) {
   return static_cast<int>(source * scale_factor);
 }
 
@@ -103,22 +104,28 @@ Win32Window::~Win32Window() {
 }
 
 bool Win32Window::CreateAndShow(const std::wstring& title,
-                                const Point& origin,
-                                const Size& size) {
+                                const Size& size,
+                                const Point& pivot,
+                                const Point& anchor) {
   Destroy();
 
   const wchar_t* window_class =
       WindowClassRegistrar::GetInstance()->GetWindowClass();
 
-  const POINT target_point = {static_cast<LONG>(origin.x),
-                              static_cast<LONG>(origin.y)};
-  HMONITOR monitor = MonitorFromPoint(target_point, MONITOR_DEFAULTTONEAREST);
+  // always get primary monitor scaling factor
+  HMONITOR monitor = MonitorFromPoint({0, 0}, MONITOR_DEFAULTTOPRIMARY);
   UINT dpi = FlutterDesktopGetDpiForMonitor(monitor);
   double scale_factor = dpi / 96.0;
 
+  const double primary_width = GetSystemMetrics(SM_CXSCREEN) / scale_factor;
+  const double primary_height = GetSystemMetrics(SM_CYSCREEN) / scale_factor;
+
+  double posX = (anchor.x * primary_width) - (pivot.x * size.width);
+  double posY = (anchor.y * primary_height) - (pivot.y * size.height);
+
   HWND window = CreateWindow(
       window_class, title.c_str(), WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-      Scale(origin.x, scale_factor), Scale(origin.y, scale_factor),
+      Scale(posX, scale_factor), Scale(posY, scale_factor),
       Scale(size.width, scale_factor), Scale(size.height, scale_factor),
       nullptr, nullptr, GetModuleHandle(nullptr), this);
 
